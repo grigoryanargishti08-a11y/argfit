@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FitLife</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--green:#22c55e;--green-dark:#16a34a;--gray:#f4f4f5;--text:#18181b;--sub:#71717a;--card:#fff;--border:#e4e4e7}
+  body{font-family:'Segoe UI',sans-serif;background:#f9fafb;color:var(--text);min-height:100vh}
+  header{background:#fff;border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+  header h1{font-size:1.4rem;font-weight:700;color:var(--green-dark)}
+  header span{font-size:.85rem;color:var(--sub)}
+  nav{display:flex;gap:4px;margin-left:auto}
+  nav button{background:none;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--sub);transition:.2s}
+  nav button.active,nav button:hover{background:var(--green);color:#fff}
+  /* Lang button */
+  .lang-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;gap:6px;margin-left:8px;transition:.2s}
+  .lang-btn:hover{border-color:var(--green);color:var(--green-dark)}
+  /* Lang modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:20px;padding:28px;width:340px;box-shadow:0 8px 40px rgba(0,0,0,.15);animation:pop .2s ease}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+  .modal p{font-size:.85rem;color:var(--sub);margin-bottom:20px}
+  .lang-list{display:flex;flex-direction:column;gap:10px}
+  .lang-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:.2s;font-size:.95rem;font-weight:500}
+  .lang-item:hover{border-color:var(--green);background:#f0fdf4}
+  .lang-item.active{border-color:var(--green);background:#f0fdf4;color:var(--green-dark)}
+  .lang-item .flag{font-size:1.6rem;line-height:1}
+  .lang-item .check{margin-left:auto;color:var(--green);font-size:1rem;opacity:0}
+  .lang-item.active .check{opacity:1}
+  .modal-close{width:100%;margin-top:16px;padding:10px;border:none;background:#f4f4f5;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:600;color:var(--sub);transition:.2s}
+  .modal-close:hover{background:var(--border)}
+  main{max-width:900px;margin:32px auto;padding:0 16px}
+  .section{display:none}.section.active{display:block}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  h2{font-size:1.2rem;font-weight:700;margin-bottom:4px}
+  .sub{color:var(--sub);font-size:.875rem;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  label{font-size:.85rem;font-weight:600;color:var(--sub);display:block;margin-bottom:6px}
+  input,select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:.95rem;outline:none;transition:.2s;background:#fafafa}
+  input:focus,select:focus{border-color:var(--green);background:#fff}
+  .btn{background:var(--green);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;width:100%;margin-top:8px}
+  .btn:hover{background:var(--green-dark)}
+  .result-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-top:16px}
+  .result-box h3{color:var(--green-dark);font-size:1rem;margin-bottom:12px}
+  .cal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #dcfce7}
+  .cal-row:last-child{border:none}
+  .cal-row span:last-child{font-weight:700;font-size:1.1rem;color:var(--green-dark)}
+  .habit-input-row{display:flex;gap:8px;margin-bottom:16px}
+  .habit-input-row input{flex:1}
+  .habit-input-row button{background:var(--green);color:#fff;border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap}
+  .habit-list{display:flex;flex-direction:column;gap:10px}
+  .habit-item{display:flex;align-items:center;gap:12px;background:#fafafa;border:1px solid var(--border);border-radius:12px;padding:12px 16px}
+  .habit-item.done{background:#f0fdf4;border-color:#bbf7d0}
+  .habit-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s}
+  .habit-item.done .habit-check{background:var(--green);border-color:var(--green)}
+  .habit-name{flex:1;font-size:.95rem}
+  .habit-item.done .habit-name{text-decoration:line-through;color:var(--sub)}
+  .streak{font-size:.8rem;color:var(--sub);margin-left:auto}
+  .habit-del{background:none;border:none;color:#f87171;cursor:pointer;font-size:1.1rem;padding:2px 6px;border-radius:6px}
+  .habit-del:hover{background:#fef2f2}
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px}
+  .week-day{text-align:center}
+  .week-day span{font-size:.7rem;color:var(--sub);display:block;margin-bottom:4px}
+  .week-dot{width:28px;height:28px;border-radius:50%;margin:0 auto;border:2px solid var(--border);background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+  .week-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+  .progress-bar-wrap{background:#e4e4e7;border-radius:99px;height:8px;margin-top:12px}
+  .progress-bar{background:var(--green);height:8px;border-radius:99px;transition:.4s}
+  .progress-label{font-size:.8rem;color:var(--sub);margin-top:6px;text-align:right}
+  .plan-options{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .opt-btn{padding:8px 18px;border:2px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--sub);transition:.2s}
+  .opt-btn.selected{border-color:var(--green);color:var(--green-dark);background:#f0fdf4}
+  .plan-grid{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+  .day-card{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f4f4f5;cursor:pointer;user-select:none}
+  .day-header b{font-size:.95rem}
+  .day-tag{font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600}
+  .tag-rest{background:#fef3c7;color:#92400e}
+  .tag-work{background:#dcfce7;color:#166534}
+  .day-body{padding:16px;display:none}
+  .day-body.open{display:block}
+  .ex-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f4f5;font-size:.9rem}
+  .ex-row:last-child{border:none}
+  .ex-row span:last-child{color:var(--sub);font-size:.82rem}
+  .chevron{transition:.3s;font-size:.8rem}
+  .day-header.open .chevron{transform:rotate(180deg)}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}.week-dot{width:22px;height:22px}nav button{padding:8px 10px;font-size:.8rem}}
+</style>
+</head>
+<body>
+
+<!-- Language Modal -->
+<div class="modal-overlay" id="lang-modal">
+  <div class="modal">
+    <h3 id="ml-title">🌐 Choose Language</h3>
+    <p id="ml-sub">Select your preferred language</p>
+    <div class="lang-list">
+      <div class="lang-item active" onclick="setLang('en')">
+        <span class="flag">🇬🇧</span><span>English</span><span class="check">✓</span>
+      </div>
+      <div class="lang-item" onclick="setLang('ru')">
+        <span class="flag">🇷🇺</span><span>Русский</span><span class="check">✓</span>
+      </div>
+      <div class="lang-item" onclick="setLang('es')">
+        <span class="flag">🇪🇸</span><span>Español</span><span class="check">✓</span>
+      </div>
+      <div class="lang-item" onclick="setLang('hy')">
+        <span class="flag">🇦🇲</span><span>Հայերեն</span><span class="check">✓</span>
+      </div>
+    </div>
+    <button class="modal-close" id="ml-close" onclick="closeLangModal()">Close</button>
+  </div>
+</div>
+
+<header>
+  <div style="width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem">F</div>
+  <h1>FitLife</h1>
+  <span id="header-sub">Your personal fitness companion</span>
+  <nav>
+    <button class="active" onclick="showSection('calories',this)" id="nav-cal">🔥 Calories</button>
+    <button onclick="showSection('habits',this)" id="nav-hab">✅ Habits</button>
+    <button onclick="showSection('training',this)" id="nav-train">📋 Training</button>
+  </nav>
+  <button class="lang-btn" onclick="openLangModal()" id="lang-toggle">🌐 EN</button>
+</header>
+
+<main>
+  <!-- CALORIES -->
+  <div id="calories" class="section active">
+    <div class="card">
+      <h2 id="cal-title">Calorie Calculator</h2>
+      <p class="sub" id="cal-desc">Find your daily calorie needs based on your stats & activity level.</p>
+      <div class="grid2">
+        <div><label id="lbl-age">Age</label><input type="number" id="age" placeholder="e.g. 25" min="10" max="100"/></div>
+        <div>
+          <label id="lbl-gender">Gender</label>
+          <select id="gender">
+            <option value="male" id="opt-male">Male</option>
+            <option value="female" id="opt-female">Female</option>
+          </select>
+        </div>
+        <div><label id="lbl-weight">Weight (kg)</label><input type="number" id="weight" placeholder="e.g. 70"/></div>
+        <div><label id="lbl-height">Height (cm)</label><input type="number" id="height" placeholder="e.g. 170"/></div>
+      </div>
+      <div style="margin-top:16px">
+        <label id="lbl-activity">Activity Level</label>
+        <select id="activity">
+          <option value="1.2" id="act-1">Sedentary (little or no exercise)</option>
+          <option value="1.375" id="act-2">Lightly active (1–3 days/week)</option>
+          <option value="1.55" id="act-3">Moderately active (3–5 days/week)</option>
+          <option value="1.725" id="act-4">Very active (6–7 days/week)</option>
+          <option value="1.9" id="act-5">Super active (athlete / physical job)</option>
+        </select>
+      </div>
+      <button class="btn" onclick="calcCalories()" id="btn-calc">Calculate My Calories</button>
+      <div id="cal-result" style="display:none" class="result-box">
+        <h3 id="res-title">📊 Your Daily Calorie Targets</h3>
+        <div class="cal-row"><span id="lbl-maintain">Maintain Weight</span><span id="c-maintain"></span></div>
+        <div class="cal-row"><span id="lbl-lose">Lose Weight (–500 kcal)</span><span id="c-lose"></span></div>
+        <div class="cal-row"><span id="lbl-losefast">Lose Weight Fast (–1000 kcal)</span><span id="c-losefast"></span></div>
+        <div class="cal-row"><span id="lbl-gain">Gain Muscle (+300 kcal)</span><span id="c-gain"></span></div>
+        <div style="margin-top:12px;font-size:.8rem;color:var(--sub)" id="cal-note">Based on Mifflin-St Jeor formula. Consult a professional for personalized advice.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div id="habits" class="section">
+    <div class="card">
+      <h2 id="hab-title">Habit Tracker</h2>
+      <p class="sub" id="hab-desc">Build healthy daily habits. Check off each one as you complete it.</p>
+      <div class="habit-input-row">
+        <input type="text" id="habit-input" placeholder="Add a new habit (e.g. Drink 2L water)" onkeydown="if(event.key==='Enter')addHabit()"/>
+        <button onclick="addHabit()" id="btn-add">+ Add</button>
+      </div>
+      <div class="habit-list" id="habit-list"></div>
+      <div id="habit-empty" style="text-align:center;color:var(--sub);padding:24px;font-size:.9rem">No habits yet. Add one above! 🌱</div>
+    </div>
+    <div class="card">
+      <h2 id="prog-title">Today's Progress</h2>
+      <p class="sub" id="prog-desc">Track how many habits you've completed today.</p>
+      <div id="week-grid" class="week-grid"></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">0 / 0 habits completed</div>
+    </div>
+  </div>
+
+  <!-- TRAINING -->
+  <div id="training" class="section">
+    <div class="card">
+      <h2 id="train-title">Personal Training Plan</h2>
+      <p class="sub" id="train-desc">Choose your goal and fitness level to get a custom weekly workout plan.</p>
+      <label id="lbl-goal">Your Goal</label>
+      <div class="plan-options" id="goal-opts">
+        <button class="opt-btn selected" onclick="selectOpt(this,'goal')" id="goal-lose">🔥 Lose Weight</button>
+        <button class="opt-btn" onclick="selectOpt(this,'goal')" id="goal-muscle">💪 Build Muscle</button>
+        <button class="opt-btn" onclick="selectOpt(this,'goal')" id="goal-active">🏃 Stay Active</button>
+      </div>
+      <label style="margin-top:14px" id="lbl-level">Fitness Level</label>
+      <div class="plan-options" id="level-opts">
+        <button class="opt-btn selected" onclick="selectOpt(this,'level')" id="lvl-beg">🌱 Beginner</button>
+        <button class="opt-btn" onclick="selectOpt(this,'level')" id="lvl-int">⚡ Intermediate</button>
+        <button class="opt-btn" onclick="selectOpt(this,'level')" id="lvl-adv">🔥 Advanced</button>
+      </div>
+      <button class="btn" onclick="generatePlan()" id="btn-gen">Generate My Plan</button>
+    </div>
+    <div id="plan-result" style="display:none">
+      <div class="card">
+        <h2 id="plan-title"></h2>
+        <p class="sub" id="plan-desc2"></p>
+        <div class="plan-grid" id="plan-grid"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===== TRANSLATIONS =====
+const T = {
+  en: {
+    headerSub:"Your personal fitness companion",
+    navCal:"🔥 Calories", navHab:"✅ Habits", navTrain:"📋 Training",
+    langBtn:"🌐 EN",
+    mlTitle:"🌐 Choose Language", mlSub:"Select your preferred language", mlClose:"Close",
+    calTitle:"Calorie Calculator", calDesc:"Find your daily calorie needs based on your stats & activity level.",
+    lblAge:"Age", lblGender:"Gender", optMale:"Male", optFemale:"Female",
+    lblWeight:"Weight (kg)", lblHeight:"Height (cm)", lblActivity:"Activity Level",
+    act1:"Sedentary (little or no exercise)", act2:"Lightly active (1–3 days/week)",
+    act3:"Moderately active (3–5 days/week)", act4:"Very active (6–7 days/week)", act5:"Super active (athlete / physical job)",
+    btnCalc:"Calculate My Calories",
+    resTitle:"📊 Your Daily Calorie Targets",
+    lblMaintain:"Maintain Weight", lblLose:"Lose Weight (–500 kcal)", lblLoseFast:"Lose Weight Fast (–1000 kcal)", lblGain:"Gain Muscle (+300 kcal)",
+    calNote:"Based on Mifflin-St Jeor formula. Consult a professional for personalized advice.",
+    habTitle:"Habit Tracker", habDesc:"Build healthy daily habits. Check off each one as you complete it.",
+    habPlaceholder:"Add a new habit (e.g. Drink 2L water)", btnAdd:"+ Add",
+    habEmpty:"No habits yet. Add one above! 🌱",
+    progTitle:"Today's Progress", progDesc:"Track how many habits you've completed today.",
+    progLabel:(d,t)=>`${d} / ${t} habits completed`,
+    streakLabel:(n)=>`🔥 ${n} day streak`,
+    days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    trainTitle:"Personal Training Plan", trainDesc:"Choose your goal and fitness level to get a custom weekly workout plan.",
+    lblGoal:"Your Goal", lblLevel:"Fitness Level",
+    goalLose:"🔥 Lose Weight", goalMuscle:"💪 Build Muscle", goalActive:"🏃 Stay Active",
+    lvlBeg:"🌱 Beginner", lvlInt:"⚡ Intermediate", lvlAdv:"🔥 Advanced",
+    btnGen:"Generate My Plan",
+    planDesc2:"Your personalized weekly training schedule. Tap a day to expand.",
+    tagRest:"Rest Day", tagWork:"Workout",
+    restText:"Rest & recover. Stretch or go for a light walk.",
+    alertFill:"Please fill in all fields.",
+    calAlertFill:"Please fill in all fields.",
+  },
+  ru: {
+    headerSub:"Ваш личный фитнес-помощник",
+    navCal:"🔥 Калории", navHab:"✅ Привычки", navTrain:"📋 Тренировка",
+    langBtn:"🌐 RU",
+    mlTitle:"🌐 Выбор языка", mlSub:"Выберите предпочитаемый язык", mlClose:"Закрыть",
+    calTitle:"Калькулятор калорий", calDesc:"Узнайте свою суточную норму калорий на основе ваших данных.",
+    lblAge:"Возраст", lblGender:"Пол", optMale:"Мужской", optFemale:"Женский",
+    lblWeight:"Вес (кг)", lblHeight:"Рост (см)", lblActivity:"Уровень активности",
+    act1:"Малоподвижный образ жизни", act2:"Слабая активность (1–3 дня/нед)",
+    act3:"Умеренная активность (3–5 дней/нед)", act4:"Высокая активность (6–7 дней/нед)", act5:"Очень высокая (спортсмен)",
+    btnCalc:"Рассчитать калории",
+    resTitle:"📊 Суточная норма калорий",
+    lblMaintain:"Поддержание веса", lblLose:"Похудение (–500 ккал)", lblLoseFast:"Быстрое похудение (–1000 ккал)", lblGain:"Набор мышц (+300 ккал)",
+    calNote:"Формула Миффлина-Сент Жеора. Проконсультируйтесь со специалистом.",
+    habTitle:"Трекер привычек", habDesc:"Формируйте полезные ежедневные привычки. Отмечайте выполненные.",
+    habPlaceholder:"Добавить привычку (напр. Выпить 2л воды)", btnAdd:"+ Добавить",
+    habEmpty:"Нет привычек. Добавьте одну выше! 🌱",
+    progTitle:"Прогресс сегодня", progDesc:"Отслеживайте выполнение привычек за день.",
+    progLabel:(d,t)=>`${d} / ${t} привычек выполнено`,
+    streakLabel:(n)=>`🔥 Серия ${n} дней`,
+    days:["Вс","Пн","Вт","Ср","Чт","Пт","Сб"],
+    trainTitle:"Персональный план тренировок", trainDesc:"Выберите цель и уровень подготовки для составления плана.",
+    lblGoal:"Ваша цель", lblLevel:"Уровень подготовки",
+    goalLose:"🔥 Похудеть", goalMuscle:"💪 Набрать мышцы", goalActive:"🏃 Поддерживать форму",
+    lvlBeg:"🌱 Начинающий", lvlInt:"⚡ Средний", lvlAdv:"🔥 Продвинутый",
+    btnGen:"Создать план",
+    planDesc2:"Ваш персональный план тренировок на неделю. Нажмите на день для раскрытия.",
+    tagRest:"День отдыха", tagWork:"Тренировка",
+    restText:"Отдых и восстановление. Растяжка или лёгкая прогулка.",
+    alertFill:"Пожалуйста, заполните все поля.",
+    calAlertFill:"Пожалуйста, заполните все поля.",
+  },
+  es: {
+    headerSub:"Tu compañero personal de fitness",
+    navCal:"🔥 Calorías", navHab:"✅ Hábitos", navTrain:"📋 Entrenamiento",
+    langBtn:"🌐 ES",
+    mlTitle:"🌐 Elegir idioma", mlSub:"Selecciona tu idioma preferido", mlClose:"Cerrar",
+    calTitle:"Calculadora de calorías", calDesc:"Encuentra tus necesidades calóricas diarias según tus datos.",
+    lblAge:"Edad", lblGender:"Género", optMale:"Masculino", optFemale:"Femenino",
+    lblWeight:"Peso (kg)", lblHeight:"Altura (cm)", lblActivity:"Nivel de actividad",
+    act1:"Sedentario (sin ejercicio)", act2:"Ligeramente activo (1–3 días/sem)",
+    act3:"Moderadamente activo (3–5 días/sem)", act4:"Muy activo (6–7 días/sem)", act5:"Súper activo (atleta / trabajo físico)",
+    btnCalc:"Calcular mis calorías",
+    resTitle:"📊 Tus objetivos calóricos diarios",
+    lblMaintain:"Mantener peso", lblLose:"Perder peso (–500 kcal)", lblLoseFast:"Perder peso rápido (–1000 kcal)", lblGain:"Ganar músculo (+300 kcal)",
+    calNote:"Basado en la fórmula Mifflin-St Jeor. Consulta a un profesional.",
+    habTitle:"Rastreador de hábitos", habDesc:"Construye hábitos saludables. Márcalos al completarlos.",
+    habPlaceholder:"Agregar hábito (ej. Beber 2L de agua)", btnAdd:"+ Agregar",
+    habEmpty:"Sin hábitos aún. ¡Agrega uno arriba! 🌱",
+    progTitle:"Progreso de hoy", progDesc:"Sigue cuántos hábitos has completado hoy.",
+    progLabel:(d,t)=>`${d} / ${t} hábitos completados`,
+    streakLabel:(n)=>`🔥 Racha de ${n} días`,
+    days:["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+    trainTitle:"Plan de entrenamiento personal", trainDesc:"Elige tu objetivo y nivel para obtener un plan semanal.",
+    lblGoal:"Tu objetivo", lblLevel:"Nivel de forma",
+    goalLose:"🔥 Perder peso", goalMuscle:"💪 Ganar músculo", goalActive:"🏃 Mantenerse activo",
+    lvlBeg:"🌱 Principiante", lvlInt:"⚡ Intermedio", lvlAdv:"🔥 Avanzado",
+    btnGen:"Generar mi plan",
+    planDesc2:"Tu plan semanal personalizado. Toca un día para expandir.",
+    tagRest:"Día de descanso", tagWork:"Entrenamiento",
+    restText:"Descansa y recupera. Estira o da un paseo ligero.",
+    alertFill:"Por favor, completa todos los campos.",
+    calAlertFill:"Por favor, completa todos los campos.",
+  },
+  hy: {
+    headerSub:"Ձեր անձնական ֆիթնես ուղեկիցը",
+    navCal:"🔥 Կալորիա", navHab:"✅ Սովորություններ", navTrain:"📋 Մարզում",
+    langBtn:"🌐 ՀՅ",
+    mlTitle:"🌐 Ընտրել լեզուն", mlSub:"Ընտրեք նախընտրած լեզուն", mlClose:"Փակել",
+    calTitle:"Կալորիաների հաշվիչ", calDesc:"Գտեք ձեր օրական կալորիաների կարիքը՝ ձեր տվյալների հիման վրա։",
+    lblAge:"Տարիք", lblGender:"Սեռ", optMale:"Արական", optFemale:"Իգական",
+    lblWeight:"Քաշ (կգ)", lblHeight:"Հասակ (սմ)", lblActivity:"Ակտիվության մակարդակ",
+    act1:"Նստակյաց (գրեթե առանց շարժման)", act2:"Թեթևակի ակտիվ (1–3 օր/շաբ)",
+    act3:"Չափավոր ակտիվ (3–5 օր/շաբ)", act4:"Շատ ակտիվ (6–7 օր/շաբ)", act5:"Գերակտիվ (մարզիկ / ֆիզիկական աշխատանք)",
+    btnCalc:"Հաշվել կալորիաները",
+    resTitle:"📊 Ձեր օրական կալորիաների նպատակները",
+    lblMaintain:"Պահպանել քաշը", lblLose:"Նիհարել (–500 կկալ)", lblLoseFast:"Արագ նիհարել (–1000 կկալ)", lblGain:"Մկան ձեռք բերել (+300 կկալ)",
+    calNote:"Հիմնված Mifflin-St Jeor բանաձևի վրա։ Խորհրդակցեք մասնագետի հետ։",
+    habTitle:"Սովորությունների հետևիչ", habDesc:"Կառուցեք առողջ ամենօրյա սովորություններ։ Նշեք ամեն կատարածը։",
+    habPlaceholder:"Ավելացնել սովորություն (օր.՝ Խմել 2լ ջուր)", btnAdd:"+ Ավելացնել",
+    habEmpty:"Դեռ սովորություններ չկան։ Ավելացրեք մեկը վերևում! 🌱",
+    progTitle:"Այսօրվա առաջընթաց", progDesc:"Հետևեք, թե քանի սովորություն եք կատարել այսօր։",
+    progLabel:(d,t)=>`${d} / ${t} սովորություն կատարված`,
+    streakLabel:(n)=>`🔥 ${n} օրվա շարք`,
+    days:["Կրկ","Երկ","Երք","Չրք","Հնգ","Ուրբ","Շաբ"],
+    trainTitle:"Անձնական մարզման պլան", trainDesc:"Ընտրեք նպատակ և ֆիզիկական մակարդակ՝ ստանալու շաբաթական պլան։",
+    lblGoal:"Ձեր նպատակը", lblLevel:"Ֆիզիկական մակարդակ",
+    goalLose:"🔥 Նիհարել", goalMuscle:"💪 Կառուցել մկաններ", goalActive:"🏃 Ակտիվ մնալ",
+    lvlBeg:"🌱 Սկսնակ", lvlInt:"⚡ Միջին", lvlAdv:"🔥 Առաջադեմ",
+    btnGen:"Ստեղծել պլան",
+    planDesc2:"Ձեր անհատական շաբաթական մարզման գրաֆիկը։ Հպեք օրվա վրա՝ ընդլայնելու համար։",
+    tagRest:"Հանգստի օր", tagWork:"Մարզում",
+    restText:"Հանգստացեք և վերականգնվեք։ Ձգվեք կամ թեթև զբոսնեք։",
+    alertFill:"Խնդրում ենք լրացնել բոլոր դաշտերը։",
+    calAlertFill:"Խնդրում ենք լրացնել բոլոր դաշտերը։",
+  }
+};
+
+let curLang = 'en';
+
+function applyLang(lang) {
+  const t = T[lang];
+  document.getElementById('header-sub').textContent = t.headerSub;
+  document.getElementById('nav-cal').textContent = t.navCal;
+  document.getElementById('nav-hab').textContent = t.navHab;
+  document.getElementById('nav-train').textContent = t.navTrain;
+  document.getElementById('lang-toggle').textContent = t.langBtn;
+  document.getElementById('ml-title').textContent = t.mlTitle;
+  document.getElementById('ml-sub').textContent = t.mlSub;
+  document.getElementById('ml-close').textContent = t.mlClose;
+  document.getElementById('cal-title').textContent = t.calTitle;
+  document.getElementById('cal-desc').textContent = t.calDesc;
+  document.getElementById('lbl-age').textContent = t.lblAge;
+  document.getElementById('lbl-gender').textContent = t.lblGender;
+  document.getElementById('opt-male').textContent = t.optMale;
+  document.getElementById('opt-female').textContent = t.optFemale;
+  document.getElementById('lbl-weight').textContent = t.lblWeight;
+  document.getElementById('lbl-height').textContent = t.lblHeight;
+  document.getElementById('lbl-activity').textContent = t.lblActivity;
+  document.getElementById('act-1').textContent = t.act1;
+  document.getElementById('act-2').textContent = t.act2;
+  document.getElementById('act-3').textContent = t.act3;
+  document.getElementById('act-4').textContent = t.act4;
+  document.getElementById('act-5').textContent = t.act5;
+  document.getElementById('btn-calc').textContent = t.btnCalc;
+  document.getElementById('res-title').textContent = t.resTitle;
+  document.getElementById('lbl-maintain').textContent = t.lblMaintain;
+  document.getElementById('lbl-lose').textContent = t.lblLose;
+  document.getElementById('lbl-losefast').textContent = t.lblLoseFast;
+  document.getElementById('lbl-gain').textContent = t.lblGain;
+  document.getElementById('cal-note').textContent = t.calNote;
+  document.getElementById('hab-title').textContent = t.habTitle;
+  document.getElementById('hab-desc').textContent = t.habDesc;
+  document.getElementById('habit-input').placeholder = t.habPlaceholder;
+  document.getElementById('btn-add').textContent = t.btnAdd;
+  document.getElementById('habit-empty').textContent = t.habEmpty;
+  document.getElementById('prog-title').textContent = t.progTitle;
+  document.getElementById('prog-desc').textContent = t.progDesc;
+  document.getElementById('train-title').textContent = t.trainTitle;
+  document.getElementById('train-desc').textContent = t.trainDesc;
+  document.getElementById('lbl-goal').textContent = t.lblGoal;
+  document.getElementById('lbl-level').textContent = t.lblLevel;
+  document.getElementById('goal-lose').textContent = t.goalLose;
+  document.getElementById('goal-muscle').textContent = t.goalMuscle;
+  document.getElementById('goal-active').textContent = t.goalActive;
+  document.getElementById('lvl-beg').textContent = t.lvlBeg;
+  document.getElementById('lvl-int').textContent = t.lvlInt;
+  document.getElementById('lvl-adv').textContent = t.lvlAdv;
+  document.getElementById('btn-gen').textContent = t.btnGen;
+  // reset selected goal/level to first buttons
+  selGoal = t.goalLose;
+  selLevel = t.lvlBeg;
+  renderHabits();
+}
+
+function openLangModal() {
+  document.getElementById('lang-modal').classList.add('open');
+}
+function closeLangModal() {
+  document.getElementById('lang-modal').classList.remove('open');
+}
+document.getElementById('lang-modal').addEventListener('click', function(e){
+  if(e.target===this) closeLangModal();
+});
+
+function setLang(lang) {
+  curLang = lang;
+  document.querySelectorAll('.lang-item').forEach(el => el.classList.remove('active'));
+  const idx = {en:0,ru:1,es:2,hy:3}[lang];
+  document.querySelectorAll('.lang-item')[idx].classList.add('active');
+  applyLang(lang);
+  closeLangModal();
+}
+
+// ===== NAV =====
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CALORIES =====
+function calcCalories() {
+  const t = T[curLang];
+  const age=+document.getElementById('age').value;
+  const w=+document.getElementById('weight').value;
+  const h=+document.getElementById('height').value;
+  const g=document.getElementById('gender').value;
+  const a=+document.getElementById('activity').value;
+  if(!age||!w||!h){alert(t.calAlertFill);return;}
+  const bmr=g==='male'?10*w+6.25*h-5*age+5:10*w+6.25*h-5*age-161;
+  const tdee=Math.round(bmr*a);
+  document.getElementById('c-maintain').textContent=tdee+' kcal';
+  document.getElementById('c-lose').textContent=Math.max(1200,tdee-500)+' kcal';
+  document.getElementById('c-losefast').textContent=Math.max(1200,tdee-1000)+' kcal';
+  document.getElementById('c-gain').textContent=(tdee+300)+' kcal';
+  document.getElementById('cal-result').style.display='block';
+}
+
+// ===== HABITS =====
+let habits = JSON.parse(localStorage.getItem('fl_habits')||'[]');
+
+function saveHabits(){localStorage.setItem('fl_habits',JSON.stringify(habits));}
+
+function addHabit(){
+  const inp=document.getElementById('habit-input');
+  const name=inp.value.trim();
+  if(!name)return;
+  habits.push({id:Date.now(),name,done:false,streak:0});
+  inp.value='';
+  renderHabits();
+  saveHabits();
+}
+
+function toggleHabit(id){
+  const h=habits.find(x=>x.id===id);
+  if(!h)return;
+  h.done=!h.done;
+  h.streak=h.done?(h.streak||0)+1:Math.max(0,(h.streak||1)-1);
+  renderHabits();saveHabits();
+}
+
+function deleteHabit(id){
+  habits=habits.filter(x=>x.id!==id);
+  renderHabits();saveHabits();
+}
+
+function renderHabits(){
+  const t=T[curLang];
+  const list=document.getElementById('habit-list');
+  const empty=document.getElementById('habit-empty');
+  list.innerHTML='';
+  empty.textContent=t.habEmpty;
+  if(!habits.length){empty.style.display='block';updateProgress();return;}
+  empty.style.display='none';
+  habits.forEach(h=>{
+    const div=document.createElement('div');
+    div.className='habit-item'+(h.done?' done':'');
+    div.innerHTML=`
+      <div class="habit-check" onclick="toggleHabit(${h.id})">${h.done?'✓':''}</div>
+      <span class="habit-name">${h.name}</span>
+      <span class="streak">${h.streak?t.streakLabel(h.streak):''}</span>
+      <button class="habit-del" onclick="deleteHabit(${h.id})">✕</button>`;
+    list.appendChild(div);
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const t=T[curLang];
+  const done=habits.filter(h=>h.done).length;
+  const total=habits.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=t.progLabel(done,total);
+  const wg=document.getElementById('week-grid');
+  wg.innerHTML='';
+  const today=new Date().getDay();
+  t.days.forEach((day,i)=>{
+    const d=document.createElement('div');
+    d.className='week-day';
+    const isToday=i===today;
+    d.innerHTML=`<span>${day}</span><div class="week-dot${isToday&&done>0?' done':''}" style="${isToday?'border-color:var(--green)':''}">${isToday?done:''}</div>`;
+    wg.appendChild(d);
+  });
+}
+
+// ===== TRAINING =====
+let selGoal='🔥 Lose Weight', selLevel='🌱 Beginner';
+
+function selectOpt(btn,type){
+  const parent=type==='goal'?'goal-opts':'level-opts';
+  document.querySelectorAll('#'+parent+' .opt-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(type==='goal')selGoal=btn.textContent.trim();
+  else selLevel=btn.textContent.trim();
+}
+
+const plans = {
+  lose:{
+    beg:[
+      {d:'Monday',t:'work',ex:[['Brisk Walk','30 min'],['Bodyweight Squats','3×12'],['Push-ups (knee)','3×10'],['Plank','3×20s']]},
+      {d:'Tuesday',t:'rest',ex:[]},
+      {d:'Wednesday',t:'work',ex:[['Jumping Jacks','3×30'],['Lunges','3×10 each'],['Glute Bridges','3×15'],['Mountain Climbers','3×20']]},
+      {d:'Thursday',t:'rest',ex:[]},
+      {d:'Friday',t:'work',ex:[['Jog/Walk Intervals','25 min'],['Wall Sit','3×30s'],['Superman Hold','3×12'],['Side Plank','2×20s each']]},
+      {d:'Saturday',t:'work',ex:[['Full Body Circuit','20 min'],['Bicycle Crunches','3×15'],['Step-ups','3×10 each'],['Stretching','10 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+    int:[
+      {d:'Monday',t:'work',ex:[['Running','30 min'],['Goblet Squats','4×15'],['Push-ups','4×15'],['Burpees','3×10']]},
+      {d:'Tuesday',t:'work',ex:[['Cycling / Rowing','30 min'],['Dumbbell Lunges','4×12'],['Dumbbell Rows','4×12'],['Russian Twists','3×20']]},
+      {d:'Wednesday',t:'rest',ex:[]},
+      {d:'Thursday',t:'work',ex:[['HIIT Intervals','20 min'],['Jump Squats','3×15'],['Pike Push-ups','3×12'],['Plank','3×45s']]},
+      {d:'Friday',t:'work',ex:[['Stair Climbing','25 min'],['Deadlifts','4×10'],['Chest Press','4×12'],['Cable Crunches','3×15']]},
+      {d:'Saturday',t:'work',ex:[['Long Run/Hike','45 min'],['Core Circuit','20 min'],['Stretching','10 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+    adv:[
+      {d:'Monday',t:'work',ex:[['Interval Running','40 min'],['Barbell Squats','5×8'],['Weighted Push-ups','4×15'],['Box Jumps','4×10']]},
+      {d:'Tuesday',t:'work',ex:[['Rowing Machine','30 min'],['Romanian Deadlift','4×10'],['Pull-ups','4×8'],['Hanging Leg Raises','4×15']]},
+      {d:'Wednesday',t:'work',ex:[['CrossFit WOD','30 min'],['Kettlebell Swings','4×20'],['Battle Ropes','3×30s'],['Plank Variations','4×45s']]},
+      {d:'Thursday',t:'rest',ex:[]},
+      {d:'Friday',t:'work',ex:[['Sprint Intervals','25 min'],['Front Squats','4×8'],['Dips','4×12'],['Dragon Flags','3×8']]},
+      {d:'Saturday',t:'work',ex:[['Long Run','60 min'],['Full Body Stretch','20 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+  },
+  muscle:{
+    beg:[
+      {d:'Monday',t:'work',ex:[['Push-ups','3×10'],['Dumbbell Curls','3×12'],['Overhead Press','3×10'],['Tricep Dips','3×10']]},
+      {d:'Tuesday',t:'work',ex:[['Bodyweight Squats','3×15'],['Glute Bridges','3×15'],['Calf Raises','3×20'],['Lunges','3×10 each']]},
+      {d:'Wednesday',t:'rest',ex:[]},
+      {d:'Thursday',t:'work',ex:[['Chest Press','3×12'],['Lat Pulldown','3×12'],['Shoulder Raises','3×15'],['Face Pulls','3×15']]},
+      {d:'Friday',t:'work',ex:[['Leg Press','3×12'],['Hamstring Curl','3×12'],['Leg Extension','3×12'],['Plank','3×30s']]},
+      {d:'Saturday',t:'rest',ex:[]},{d:'Sunday',t:'rest',ex:[]},
+    ],
+    int:[
+      {d:'Monday',t:'work',ex:[['Bench Press','4×8'],['Incline DB Press','3×10'],['Cable Flyes','3×12'],['Tricep Pushdown','3×12']]},
+      {d:'Tuesday',t:'work',ex:[['Barbell Squats','4×8'],['Leg Press','3×10'],['Romanian Deadlift','3×10'],['Calf Raises','4×15']]},
+      {d:'Wednesday',t:'rest',ex:[]},
+      {d:'Thursday',t:'work',ex:[['Pull-ups','4×8'],['Barbell Rows','4×8'],['Seated Cable Row','3×12'],['Bicep Curls','3×12']]},
+      {d:'Friday',t:'work',ex:[['Overhead Press','4×8'],['Arnold Press','3×10'],['Lateral Raises','3×15'],['Rear Delt Flyes','3×15']]},
+      {d:'Saturday',t:'work',ex:[['Deadlifts','4×5'],['Hip Thrusts','4×10'],['Core Work','20 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+    adv:[
+      {d:'Monday',t:'work',ex:[['Bench Press','5×5'],['Incline Press','4×8'],['Weighted Dips','4×8'],['Cable Crossover','3×12']]},
+      {d:'Tuesday',t:'work',ex:[['Barbell Squats','5×5'],['Hack Squats','4×8'],['Walking Lunges','3×12'],['Leg Curl','4×10']]},
+      {d:'Wednesday',t:'work',ex:[['Weighted Pull-ups','5×5'],['Pendlay Rows','4×6'],['T-Bar Row','4×8'],['Hammer Curls','4×10']]},
+      {d:'Thursday',t:'rest',ex:[]},
+      {d:'Friday',t:'work',ex:[['Overhead Press','5×5'],['Push Press','3×5'],['Lateral Raises','4×15'],['Face Pulls','4×15']]},
+      {d:'Saturday',t:'work',ex:[['Deadlifts','5×3'],['Good Mornings','4×10'],['Hyperextensions','3×15'],['Ab Wheel','4×10']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+  },
+  active:{
+    beg:[
+      {d:'Monday',t:'work',ex:[['Morning Walk','30 min'],['Light Stretching','10 min'],['Bodyweight Squats','2×10']]},
+      {d:'Tuesday',t:'work',ex:[['Yoga Flow','30 min'],['Balance Exercises','10 min']]},
+      {d:'Wednesday',t:'work',ex:[['Cycling','30 min'],['Core Breathing','10 min']]},
+      {d:'Thursday',t:'rest',ex:[]},
+      {d:'Friday',t:'work',ex:[['Swimming / Walk','30 min'],['Full Body Stretch','15 min']]},
+      {d:'Saturday',t:'work',ex:[['Hiking / Nature Walk','45 min'],['Light Yoga','15 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+    int:[
+      {d:'Monday',t:'work',ex:[['Jog','30 min'],['Push-ups','3×12'],['Core Circuit','15 min']]},
+      {d:'Tuesday',t:'work',ex:[['Cycling','40 min'],['Dumbbell Circuit','20 min']]},
+      {d:'Wednesday',t:'rest',ex:[]},
+      {d:'Thursday',t:'work',ex:[['Swim or Row','30 min'],['Functional Training','20 min']]},
+      {d:'Friday',t:'work',ex:[['HIIT','20 min'],['Stretching','15 min']]},
+      {d:'Saturday',t:'work',ex:[['Trail Run or Hike','60 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+    adv:[
+      {d:'Monday',t:'work',ex:[['Run','45 min'],['Strength Circuit','25 min'],['Mobility Work','10 min']]},
+      {d:'Tuesday',t:'work',ex:[['Swim','45 min'],['Core & Stability','20 min']]},
+      {d:'Wednesday',t:'work',ex:[['Cycling (hard effort)','50 min'],['Upper Body Strength','20 min']]},
+      {d:'Thursday',t:'rest',ex:[]},
+      {d:'Friday',t:'work',ex:[['Sprint Intervals','30 min'],['Lower Body Strength','20 min']]},
+      {d:'Saturday',t:'work',ex:[['Long Endurance Activity','90 min']]},
+      {d:'Sunday',t:'rest',ex:[]},
+    ],
+  },
+};
+
+function generatePlan(){
+  const t=T[curLang];
+  // map selected button text to plan key
+  const goalMap={
+    [T.en.goalLose]:'lose',[T.ru.goalLose]:'lose',[T.es.goalLose]:'lose',[T.hy.goalLose]:'lose',
+    [T.en.goalMuscle]:'muscle',[T.ru.goalMuscle]:'muscle',[T.es.goalMuscle]:'muscle',[T.hy.goalMuscle]:'muscle',
+    [T.en.goalActive]:'active',[T.ru.goalActive]:'active',[T.es.goalActive]:'active',[T.hy.goalActive]:'active',
+  };
+  const levelMap={
+    [T.en.lvlBeg]:'beg',[T.ru.lvlBeg]:'beg',[T.es.lvlBeg]:'beg',[T.hy.lvlBeg]:'beg',
+    [T.en.lvlInt]:'int',[T.ru.lvlInt]:'int',[T.es.lvlInt]:'int',[T.hy.lvlInt]:'int',
+    [T.en.lvlAdv]:'adv',[T.ru.lvlAdv]:'adv',[T.es.lvlAdv]:'adv',[T.hy.lvlAdv]:'adv',
+  };
+  const gKey=goalMap[selGoal]||'lose';
+  const lKey=levelMap[selLevel]||'beg';
+  const plan=plans[gKey][lKey];
+  document.getElementById('plan-title').textContent=selGoal+' — '+selLevel;
+  document.getElementById('plan-desc2').textContent=t.planDesc2;
+  const grid=document.getElementById('plan-grid');
+  grid.innerHTML='';
+  const dayNames={
+    Monday:0,Tuesday:1,Wednesday:2,Thursday:3,Friday:4,Saturday:5,Sunday:6
+  };
+  const fullDays=[t.days[1]&&T.en.days[0]?null:null]; // use translated day names
+  const enDays=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  plan.forEach(day=>{
+    const el=document.createElement('div');
+    el.className='day-card';
+    // translate day name using index
+    const dayIdx=enDays.indexOf(day.d);
+    const localDay = dayIdx>=0 ? t.days[dayIdx] : day.d;
+    const exHtml=day.ex.length
+      ? day.ex.map(([n,s])=>`<div class="ex-row"><span>${n}</span><span>${s}</span></div>`).join('')
+      : `<p style="color:var(--sub);font-size:.875rem">${t.restText}</p>`;
+    el.innerHTML=`
+      <div class="day-header" onclick="toggleDay(this)">
+        <b>${localDay}</b>
+        <span class="day-tag ${day.t==='rest'?'tag-rest':'tag-work'}">${day.t==='rest'?t.tagRest:t.tagWork}</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="day-body">${exHtml}</div>`;
+    grid.appendChild(el);
+  });
+  document.getElementById('plan-result').style.display='block';
+  document.getElementById('plan-result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleDay(header){
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+// Init
+renderHabits();
+</script>
+</body>
+</html>
