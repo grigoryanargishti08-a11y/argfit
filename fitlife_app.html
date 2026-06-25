@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>FitLife</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--green:#22c55e;--green-dark:#16a34a;--gray:#f4f4f5;--text:#18181b;--sub:#71717a;--card:#fff;--border:#e4e4e7}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:var(--text);min-height:100vh;-webkit-text-size-adjust:100%}
+header{background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.header-top{display:flex;align-items:center;gap:8px;width:100%}
+header h1{font-size:1.2rem;font-weight:700;color:var(--green-dark)}
+header .tagline{font-size:.75rem;color:var(--sub);display:none}
+nav{display:flex;gap:4px;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.82rem;color:var(--sub);transition:.2s;white-space:nowrap;-webkit-appearance:none;flex-shrink:0}
+nav button.active,nav button:hover{background:var(--green);color:#fff}
+.lang-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:4px;margin-left:auto;-webkit-appearance:none;flex-shrink:0}
+.lang-btn:hover{border-color:var(--green)}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end;justify-content:center}
+@media(min-width:600px){.modal-overlay{align-items:center}}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:420px;box-shadow:0 -4px 40px rgba(0,0,0,.15);animation:slideup .25s ease}
+@media(min-width:600px){.modal{border-radius:20px;animation:pop .2s ease}}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.modal p{font-size:.85rem;color:var(--sub);margin-bottom:16px}
+.lang-list{display:flex;flex-direction:column;gap:8px}
+.lang-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:.95rem;font-weight:500;-webkit-tap-highlight-color:transparent}
+.lang-item:active{background:#f0fdf4}
+.lang-item.active{border-color:var(--green);background:#f0fdf4;color:var(--green-dark)}
+.lang-item .flag{font-size:1.5rem;line-height:1}
+.lang-item .check{margin-left:auto;color:var(--green);opacity:0}
+.lang-item.active .check{opacity:1}
+.modal-close{width:100%;margin-top:12px;padding:12px;border:none;background:#f4f4f5;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:600;color:var(--sub);-webkit-appearance:none}
+main{max-width:900px;margin:24px auto;padding:0 12px}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+h2{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.sub{color:var(--sub);font-size:.85rem;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.grid2{grid-template-columns:1fr}}
+label{font-size:.82rem;font-weight:600;color:var(--sub);display:block;margin-bottom:5px}
+input,select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:16px;outline:none;background:#fafafa;-webkit-appearance:none;appearance:none;color:var(--text)}
+input:focus,select:focus{border-color:var(--green);background:#fff}
+.btn{background:var(--green);color:#fff;border:none;padding:13px 20px;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;width:100%;margin-top:10px;-webkit-appearance:none;touch-action:manipulation}
+.btn:active{background:var(--green-dark)}
+.result-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-top:14px}
+.result-box h3{color:var(--green-dark);font-size:.95rem;margin-bottom:10px}
+.cal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #dcfce7}
+.cal-row:last-child{border:none}
+.cal-row span:first-child{font-size:.88rem;color:var(--sub)}
+.cal-row span:last-child{font-weight:700;font-size:1rem;color:var(--green-dark)}
+/* Habits */
+.habit-input-row{display:flex;gap:8px;margin-bottom:14px}
+.habit-input-row input{flex:1;min-width:0}
+.habit-input-row button{background:var(--green);color:#fff;border:none;padding:11px 14px;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap;-webkit-appearance:none;flex-shrink:0;font-size:.9rem}
+.habit-list{display:flex;flex-direction:column;gap:8px}
+.habit-item{display:flex;align-items:center;gap:10px;background:#fafafa;border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.habit-item.done{background:#f0fdf4;border-color:#bbf7d0}
+.habit-check{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem}
+.habit-item.done .habit-check{background:var(--green);border-color:var(--green);color:#fff}
+.habit-name{flex:1;font-size:.9rem;min-width:0;word-break:break-word}
+.habit-item.done .habit-name{text-decoration:line-through;color:var(--sub)}
+.streak{font-size:.75rem;color:var(--sub);white-space:nowrap}
+.habit-del{background:none;border:none;color:#f87171;cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;flex-shrink:0}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:14px}
+.week-day{text-align:center}
+.week-day span{font-size:.65rem;color:var(--sub);display:block;margin-bottom:4px}
+.week-dot{width:100%;aspect-ratio:1;max-width:32px;border-radius:50%;margin:0 auto;border:2px solid var(--border);background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:.75rem}
+.week-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.progress-bar-wrap{background:#e4e4e7;border-radius:99px;height:8px;margin-top:10px}
+.progress-bar{background:var(--green);height:8px;border-radius:99px;transition:.4s}
+.progress-label{font-size:.78rem;color:var(--sub);margin-top:6px;text-align:right}
+/* Eating Plan */
+.opt-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.opt-btn{padding:8px 14px;border:2px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--sub);-webkit-appearance:none;touch-action:manipulation}
+.opt-btn.selected{border-color:var(--green);color:var(--green-dark);background:#f0fdf4}
+.meal-grid{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.meal-card{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.meal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f9fafb;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.meal-header b{font-size:.9rem}
+.meal-tag{font-size:.72rem;padding:3px 10px;border-radius:99px;font-weight:600}
+.tag-break{background:#fef9c3;color:#713f12}
+.tag-lunch{background:#dbeafe;color:#1e40af}
+.tag-dinner{background:#ede9fe;color:#5b21b6}
+.tag-snack{background:#dcfce7;color:#166534}
+.meal-body{padding:14px;display:none}
+.meal-body.open{display:block}
+.food-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f4f4f5;font-size:.88rem}
+.food-row:last-child{border:none}
+.food-row span:last-child{color:var(--sub);font-size:.8rem}
+.chevron{transition:.3s;font-size:.75rem;color:var(--sub)}
+.meal-header.open .chevron{transform:rotate(180deg)}
+.macro-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.macro-pill{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:4px 12px;font-size:.78rem;color:var(--green-dark);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- Language Modal -->
+<div class="modal-overlay" id="lang-modal">
+  <div class="modal">
+    <h3 id="ml-title">🌐 Choose Language</h3>
+    <p id="ml-sub">Select your preferred language</p>
+    <div class="lang-list">
+      <div class="lang-item active" onclick="setLang('en')"><span class="flag">🇬🇧</span><span>English</span><span class="check">✓</span></div>
+      <div class="lang-item" onclick="setLang('ru')"><span class="flag">🇷🇺</span><span>Русский</span><span class="check">✓</span></div>
+      <div class="lang-item" onclick="setLang('es')"><span class="flag">🇪🇸</span><span>Español</span><span class="check">✓</span></div>
+      <div class="lang-item" onclick="setLang('hy')"><span class="flag">🇦🇲</span><span>Հայերեն</span><span class="check">✓</span></div>
+    </div>
+    <button class="modal-close" id="ml-close" onclick="closeLangModal()">Close</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-top">
+    <div style="width:30px;height:30px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.95rem;flex-shrink:0">F</div>
+    <h1>FitLife</h1>
+    <button class="lang-btn" onclick="openLangModal()" id="lang-toggle">🌐 EN</button>
+  </div>
+  <nav>
+    <button class="active" onclick="showSection('calories',this)" id="nav-cal">🔥 Calories</button>
+    <button onclick="showSection('habits',this)" id="nav-hab">✅ Habits</button>
+    <button onclick="showSection('eating',this)" id="nav-eat">🥗 Eating Plan</button>
+  </nav>
+</header>
+
+<main>
+  <!-- CALORIES -->
+  <div id="calories" class="section active">
+    <div class="card">
+      <h2 id="cal-title">Calorie Calculator</h2>
+      <p class="sub" id="cal-desc">Find your daily calorie needs based on your stats & activity level.</p>
+      <div class="grid2">
+        <div><label id="lbl-age">Age</label><input type="number" id="age" placeholder="25" inputmode="numeric"/></div>
+        <div>
+          <label id="lbl-gender">Gender</label>
+          <select id="gender"><option value="male" id="opt-male">Male</option><option value="female" id="opt-female">Female</option></select>
+        </div>
+        <div><label id="lbl-weight">Weight (kg)</label><input type="number" id="weight" placeholder="70" inputmode="decimal"/></div>
+        <div><label id="lbl-height">Height (cm)</label><input type="number" id="height" placeholder="170" inputmode="numeric"/></div>
+      </div>
+      <div style="margin-top:14px">
+        <label id="lbl-activity">Activity Level</label>
+        <select id="activity">
+          <option value="1.2" id="act-1">Sedentary</option>
+          <option value="1.375" id="act-2">Lightly active (1–3 days/week)</option>
+          <option value="1.55" id="act-3">Moderately active (3–5 days/week)</option>
+          <option value="1.725" id="act-4">Very active (6–7 days/week)</option>
+          <option value="1.9" id="act-5">Super active (athlete)</option>
+        </select>
+      </div>
+      <button class="btn" onclick="calcCalories()" id="btn-calc">Calculate My Calories</button>
+      <div id="cal-result" style="display:none" class="result-box">
+        <h3 id="res-title">📊 Your Daily Calorie Targets</h3>
+        <div class="cal-row"><span id="lbl-maintain">Maintain Weight</span><span id="c-maintain"></span></div>
+        <div class="cal-row"><span id="lbl-lose">Lose Weight (–500 kcal)</span><span id="c-lose"></span></div>
+        <div class="cal-row"><span id="lbl-losefast">Lose Weight Fast (–1000 kcal)</span><span id="c-losefast"></span></div>
+        <div class="cal-row"><span id="lbl-gain">Gain Muscle (+300 kcal)</span><span id="c-gain"></span></div>
+        <div style="margin-top:10px;font-size:.75rem;color:var(--sub)" id="cal-note">Based on Mifflin-St Jeor formula.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div id="habits" class="section">
+    <div class="card">
+      <h2 id="hab-title">Habit Tracker</h2>
+      <p class="sub" id="hab-desc">Build healthy daily habits. Check off each one as you complete it.</p>
+      <div class="habit-input-row">
+        <input type="text" id="habit-input" placeholder="Add a habit..." autocomplete="off"/>
+        <button onclick="addHabit()" id="btn-add">+ Add</button>
+      </div>
+      <div class="habit-list" id="habit-list"></div>
+      <div id="habit-empty" style="text-align:center;color:var(--sub);padding:20px;font-size:.88rem">No habits yet. Add one above! 🌱</div>
+    </div>
+    <div class="card">
+      <h2 id="prog-title">Today's Progress</h2>
+      <p class="sub" id="prog-desc">Track how many habits you've completed today.</p>
+      <div id="week-grid" class="week-grid"></div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">0 / 0 habits completed</div>
+    </div>
+  </div>
+
+  <!-- EATING PLAN -->
+  <div id="eating" class="section">
+    <div class="card">
+      <h2 id="eat-title">Eating Plan Generator</h2>
+      <p class="sub" id="eat-desc">Choose your goal and diet style to get a personalized daily meal plan.</p>
+      <label id="lbl-eatgoal">Your Goal</label>
+      <div class="opt-row" id="eatgoal-opts">
+        <button class="opt-btn selected" onclick="selectOpt(this,'eatgoal')" id="eg-lose">🔥 Lose Weight</button>
+        <button class="opt-btn" onclick="selectOpt(this,'eatgoal')" id="eg-muscle">💪 Build Muscle</button>
+        <button class="opt-btn" onclick="selectOpt(this,'eatgoal')" id="eg-health">🌿 Stay Healthy</button>
+      </div>
+      <label style="margin-top:12px" id="lbl-diet">Diet Style</label>
+      <div class="opt-row" id="diet-opts">
+        <button class="opt-btn selected" onclick="selectOpt(this,'diet')" id="d-balanced">🥗 Balanced</button>
+        <button class="opt-btn" onclick="selectOpt(this,'diet')" id="d-highprot">🥩 High Protein</button>
+        <button class="opt-btn" onclick="selectOpt(this,'diet')" id="d-veg">🌱 Vegetarian</button>
+        <button class="opt-btn" onclick="selectOpt(this,'diet')" id="d-lowcarb">🥑 Low Carb</button>
+      </div>
+      <button class="btn" onclick="generateMeals()" id="btn-eat">Generate My Meal Plan</button>
+    </div>
+    <div id="meal-result" style="display:none">
+      <div class="card">
+        <h2 id="meal-plan-title"></h2>
+        <p class="sub" id="meal-plan-desc"></p>
+        <div class="macro-row" id="macro-row"></div>
+        <div class="meal-grid" id="meal-grid"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===== TRANSLATIONS =====
+const T={
+  en:{
+    headerSub:"Your personal fitness companion",
+    navCal:"🔥 Calories",navHab:"✅ Habits",navEat:"🥗 Eating Plan",
+    langBtn:"🌐 EN",
+    mlTitle:"🌐 Choose Language",mlSub:"Select your preferred language",mlClose:"Close",
+    calTitle:"Calorie Calculator",calDesc:"Find your daily calorie needs based on your stats & activity level.",
+    lblAge:"Age",lblGender:"Gender",optMale:"Male",optFemale:"Female",
+    lblWeight:"Weight (kg)",lblHeight:"Height (cm)",lblActivity:"Activity Level",
+    act1:"Sedentary",act2:"Lightly active (1–3 days/week)",act3:"Moderately active (3–5 days/week)",act4:"Very active (6–7 days/week)",act5:"Super active (athlete)",
+    btnCalc:"Calculate My Calories",
+    resTitle:"📊 Your Daily Calorie Targets",
+    lblMaintain:"Maintain Weight",lblLose:"Lose Weight (–500 kcal)",lblLoseFast:"Lose Weight Fast (–1000 kcal)",lblGain:"Gain Muscle (+300 kcal)",
+    calNote:"Based on Mifflin-St Jeor formula.",
+    habTitle:"Habit Tracker",habDesc:"Build healthy daily habits. Check off each one as you complete it.",
+    habPlaceholder:"Add a habit...",btnAdd:"+ Add",
+    habEmpty:"No habits yet. Add one above! 🌱",
+    progTitle:"Today's Progress",progDesc:"Track how many habits you've completed today.",
+    progLabel:(d,t)=>`${d} / ${t} habits completed`,
+    streakLabel:(n)=>`🔥 ${n}d`,
+    days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    eatTitle:"Eating Plan Generator",eatDesc:"Choose your goal and diet style to get a personalized daily meal plan.",
+    lblEatGoal:"Your Goal",lblDiet:"Diet Style",
+    egLose:"🔥 Lose Weight",egMuscle:"💪 Build Muscle",egHealth:"🌿 Stay Healthy",
+    dBalanced:"🥗 Balanced",dHighProt:"🥩 High Protein",dVeg:"🌱 Vegetarian",dLowCarb:"🥑 Low Carb",
+    btnEat:"Generate My Meal Plan",
+    mealPlanDesc:"Tap a meal to see details.",
+    tagBreak:"Breakfast",tagLunch:"Lunch",tagDinner:"Dinner",tagSnack:"Snack",
+    alertFill:"Please fill in all fields.",
+    macroLabel:"Daily Macros:",
+  },
+  ru:{
+    headerSub:"Ваш личный фитнес-помощник",
+    navCal:"🔥 Калории",navHab:"✅ Привычки",navEat:"🥗 Питание",
+    langBtn:"🌐 RU",
+    mlTitle:"🌐 Выбор языка",mlSub:"Выберите язык",mlClose:"Закрыть",
+    calTitle:"Калькулятор калорий",calDesc:"Узнайте суточную норму калорий.",
+    lblAge:"Возраст",lblGender:"Пол",optMale:"Мужской",optFemale:"Женский",
+    lblWeight:"Вес (кг)",lblHeight:"Рост (см)",lblActivity:"Активность",
+    act1:"Малоподвижный",act2:"Слабо активный (1–3 дня/нед)",act3:"Умеренно активный (3–5 дней)",act4:"Высокая активность (6–7 дней)",act5:"Очень высокая (спортсмен)",
+    btnCalc:"Рассчитать",
+    resTitle:"📊 Суточная норма",
+    lblMaintain:"Поддержание веса",lblLose:"Похудение (–500 ккал)",lblLoseFast:"Быстрое похудение (–1000 ккал)",lblGain:"Набор мышц (+300 ккал)",
+    calNote:"Формула Миффлина-Сент Жеора.",
+    habTitle:"Трекер привычек",habDesc:"Формируйте ежедневные привычки.",
+    habPlaceholder:"Добавить привычку...",btnAdd:"+ Добавить",
+    habEmpty:"Нет привычек. Добавьте выше! 🌱",
+    progTitle:"Прогресс сегодня",progDesc:"Отслеживайте выполнение привычек.",
+    progLabel:(d,t)=>`${d} / ${t} выполнено`,
+    streakLabel:(n)=>`🔥 ${n}д`,
+    days:["Вс","Пн","Вт","Ср","Чт","Пт","Сб"],
+    eatTitle:"Генератор плана питания",eatDesc:"Выберите цель и стиль питания.",
+    lblEatGoal:"Ваша цель",lblDiet:"Стиль питания",
+    egLose:"🔥 Похудеть",egMuscle:"💪 Набрать мышцы",egHealth:"🌿 Здоровое питание",
+    dBalanced:"🥗 Сбалансированное",dHighProt:"🥩 Высокобелковое",dVeg:"🌱 Вегетарианское",dLowCarb:"🥑 Низкоуглеводное",
+    btnEat:"Создать план питания",
+    mealPlanDesc:"Нажмите на приём пищи для деталей.",
+    tagBreak:"Завтрак",tagLunch:"Обед",tagDinner:"Ужин",tagSnack:"Перекус",
+    alertFill:"Заполните все поля.",
+    macroLabel:"Макросы за день:",
+  },
+  es:{
+    headerSub:"Tu compañero personal de fitness",
+    navCal:"🔥 Calorías",navHab:"✅ Hábitos",navEat:"🥗 Plan de comidas",
+    langBtn:"🌐 ES",
+    mlTitle:"🌐 Elegir idioma",mlSub:"Selecciona tu idioma",mlClose:"Cerrar",
+    calTitle:"Calculadora de calorías",calDesc:"Encuentra tus necesidades calóricas diarias.",
+    lblAge:"Edad",lblGender:"Género",optMale:"Masculino",optFemale:"Femenino",
+    lblWeight:"Peso (kg)",lblHeight:"Altura (cm)",lblActivity:"Nivel de actividad",
+    act1:"Sedentario",act2:"Ligeramente activo (1–3 días/sem)",act3:"Moderadamente activo (3–5 días)",act4:"Muy activo (6–7 días)",act5:"Súper activo (atleta)",
+    btnCalc:"Calcular calorías",
+    resTitle:"📊 Objetivos calóricos",
+    lblMaintain:"Mantener peso",lblLose:"Perder peso (–500 kcal)",lblLoseFast:"Perder rápido (–1000 kcal)",lblGain:"Ganar músculo (+300 kcal)",
+    calNote:"Basado en fórmula Mifflin-St Jeor.",
+    habTitle:"Rastreador de hábitos",habDesc:"Construye hábitos saludables.",
+    habPlaceholder:"Agregar hábito...",btnAdd:"+ Agregar",
+    habEmpty:"Sin hábitos aún. ¡Agrega uno! 🌱",
+    progTitle:"Progreso de hoy",progDesc:"Sigue tus hábitos completados.",
+    progLabel:(d,t)=>`${d} / ${t} completados`,
+    streakLabel:(n)=>`🔥 ${n}d`,
+    days:["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+    eatTitle:"Generador de plan de comidas",eatDesc:"Elige tu objetivo y estilo de dieta.",
+    lblEatGoal:"Tu objetivo",lblDiet:"Estilo de dieta",
+    egLose:"🔥 Perder peso",egMuscle:"💪 Ganar músculo",egHealth:"🌿 Salud general",
+    dBalanced:"🥗 Equilibrado",dHighProt:"🥩 Alto en proteína",dVeg:"🌱 Vegetariano",dLowCarb:"🥑 Bajo en carbos",
+    btnEat:"Generar mi plan",
+    mealPlanDesc:"Toca una comida para ver detalles.",
+    tagBreak:"Desayuno",tagLunch:"Almuerzo",tagDinner:"Cena",tagSnack:"Snack",
+    alertFill:"Por favor, completa todos los campos.",
+    macroLabel:"Macros del día:",
+  },
+  hy:{
+    headerSub:"Ձեր անձնական ֆիթնես ուղեկիցը",
+    navCal:"🔥 Կալորիա",navHab:"✅ Սովորություններ",navEat:"🥗 Սնուցման պլան",
+    langBtn:"🌐 ՀՅ",
+    mlTitle:"🌐 Ընտրել լեզուն",mlSub:"Ընտրեք լեզուն",mlClose:"Փակել",
+    calTitle:"Կալորիաների հաշվիչ",calDesc:"Գտեք ձեր օրական կալորիաների կարիքը։",
+    lblAge:"Տարիք",lblGender:"Սեռ",optMale:"Արական",optFemale:"Իգական",
+    lblWeight:"Քաշ (կգ)",lblHeight:"Հասակ (սմ)",lblActivity:"Ակտիվության մակարդակ",
+    act1:"Նստակյաց",act2:"Թեթև ակտիվ (1–3 օր/շաբ)",act3:"Չափավոր ակտիվ (3–5 օր)",act4:"Շատ ակտիվ (6–7 օր)",act5:"Գերակտիվ (մարզիկ)",
+    btnCalc:"Հաշվել կալորիաները",
+    resTitle:"📊 Օրական կալորիաների նպատակ",
+    lblMaintain:"Պահպանել քաշը",lblLose:"Նիհարել (–500 կկալ)",lblLoseFast:"Արագ նիհարել (–1000 կկալ)",lblGain:"Մկան ձեռք բերել (+300 կկալ)",
+    calNote:"Հիմնված Mifflin-St Jeor բանաձևի վրա։",
+    habTitle:"Սովորությունների հետևիչ",habDesc:"Կառուցեք առողջ ամենօրյա սովորություններ։",
+    habPlaceholder:"Ավելացնել սովորություն...",btnAdd:"+ Ավելացնել",
+    habEmpty:"Դեռ սովորություններ չկան։ 🌱",
+    progTitle:"Այսօրվա առաջընթաց",progDesc:"Հետևեք ձեր կատարված սովորություններին։",
+    progLabel:(d,t)=>`${d} / ${t} կատարված`,
+    streakLabel:(n)=>`🔥 ${n}օ`,
+    days:["Կրկ","Երկ","Երք","Չրք","Հնգ","Ուրբ","Շաբ"],
+    eatTitle:"Սնուցման պլանի գեներատոր",eatDesc:"Ընտրեք նպատակ և սննդի ոճ։",
+    lblEatGoal:"Ձեր նպատակը",lblDiet:"Սննդի ոճ",
+    egLose:"🔥 Նիհարել",egMuscle:"💪 Կառուցել մկաններ",egHealth:"🌿 Առողջ մնալ",
+    dBalanced:"🥗 Հավասարակշռված",dHighProt:"🥩 Բարձր սպիտակուց",dVeg:"🌱 Բուսակեր",dLowCarb:"🥑 Քիչ ածուխ",
+    btnEat:"Ստեղծել սնուցման պլան",
+    mealPlanDesc:"Հպեք կերակրատեսակի վրա՝ մանրամասների համար։",
+    tagBreak:"Նախաճաշ",tagLunch:"Ճաշ",tagDinner:"Ընթրիք",tagSnack:"Խորտիկ",
+    alertFill:"Լրացրեք բոլոր դաշտերը։",
+    macroLabel:"Օրական մակրոներ՝",
+  }
+};
+
+let curLang='en';
+
+function applyLang(lang){
+  const t=T[lang];
+  document.getElementById('nav-cal').textContent=t.navCal;
+  document.getElementById('nav-hab').textContent=t.navHab;
+  document.getElementById('nav-eat').textContent=t.navEat;
+  document.getElementById('lang-toggle').textContent=t.langBtn;
+  document.getElementById('ml-title').textContent=t.mlTitle;
+  document.getElementById('ml-sub').textContent=t.mlSub;
+  document.getElementById('ml-close').textContent=t.mlClose;
+  document.getElementById('cal-title').textContent=t.calTitle;
+  document.getElementById('cal-desc').textContent=t.calDesc;
+  document.getElementById('lbl-age').textContent=t.lblAge;
+  document.getElementById('lbl-gender').textContent=t.lblGender;
+  document.getElementById('opt-male').textContent=t.optMale;
+  document.getElementById('opt-female').textContent=t.optFemale;
+  document.getElementById('lbl-weight').textContent=t.lblWeight;
+  document.getElementById('lbl-height').textContent=t.lblHeight;
+  document.getElementById('lbl-activity').textContent=t.lblActivity;
+  document.getElementById('act-1').textContent=t.act1;
+  document.getElementById('act-2').textContent=t.act2;
+  document.getElementById('act-3').textContent=t.act3;
+  document.getElementById('act-4').textContent=t.act4;
+  document.getElementById('act-5').textContent=t.act5;
+  document.getElementById('btn-calc').textContent=t.btnCalc;
+  document.getElementById('res-title').textContent=t.resTitle;
+  document.getElementById('lbl-maintain').textContent=t.lblMaintain;
+  document.getElementById('lbl-lose').textContent=t.lblLose;
+  document.getElementById('lbl-losefast').textContent=t.lblLoseFast;
+  document.getElementById('lbl-gain').textContent=t.lblGain;
+  document.getElementById('cal-note').textContent=t.calNote;
+  document.getElementById('hab-title').textContent=t.habTitle;
+  document.getElementById('hab-desc').textContent=t.habDesc;
+  document.getElementById('habit-input').placeholder=t.habPlaceholder;
+  document.getElementById('btn-add').textContent=t.btnAdd;
+  document.getElementById('prog-title').textContent=t.progTitle;
+  document.getElementById('prog-desc').textContent=t.progDesc;
+  document.getElementById('eat-title').textContent=t.eatTitle;
+  document.getElementById('eat-desc').textContent=t.eatDesc;
+  document.getElementById('lbl-eatgoal').textContent=t.lblEatGoal;
+  document.getElementById('lbl-diet').textContent=t.lblDiet;
+  document.getElementById('eg-lose').textContent=t.egLose;
+  document.getElementById('eg-muscle').textContent=t.egMuscle;
+  document.getElementById('eg-health').textContent=t.egHealth;
+  document.getElementById('d-balanced').textContent=t.dBalanced;
+  document.getElementById('d-highprot').textContent=t.dHighProt;
+  document.getElementById('d-veg').textContent=t.dVeg;
+  document.getElementById('d-lowcarb').textContent=t.dLowCarb;
+  document.getElementById('btn-eat').textContent=t.btnEat;
+  selEatGoal=t.egLose; selDiet=t.dBalanced;
+  renderHabits();
+}
+
+function openLangModal(){document.getElementById('lang-modal').classList.add('open')}
+function closeLangModal(){document.getElementById('lang-modal').classList.remove('open')}
+document.getElementById('lang-modal').addEventListener('click',function(e){if(e.target===this)closeLangModal()});
+
+function setLang(lang){
+  curLang=lang;
+  document.querySelectorAll('.lang-item').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.lang-item')[{en:0,ru:1,es:2,hy:3}[lang]].classList.add('active');
+  applyLang(lang);
+  closeLangModal();
+}
+
+// ===== NAV =====
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CALORIES =====
+function calcCalories(){
+  const t=T[curLang];
+  const age=+document.getElementById('age').value;
+  const w=+document.getElementById('weight').value;
+  const h=+document.getElementById('height').value;
+  const g=document.getElementById('gender').value;
+  const a=+document.getElementById('activity').value;
+  if(!age||!w||!h){alert(t.alertFill);return;}
+  const bmr=g==='male'?10*w+6.25*h-5*age+5:10*w+6.25*h-5*age-161;
+  const tdee=Math.round(bmr*a);
+  document.getElementById('c-maintain').textContent=tdee+' kcal';
+  document.getElementById('c-lose').textContent=Math.max(1200,tdee-500)+' kcal';
+  document.getElementById('c-losefast').textContent=Math.max(1200,tdee-1000)+' kcal';
+  document.getElementById('c-gain').textContent=(tdee+300)+' kcal';
+  document.getElementById('cal-result').style.display='block';
+}
+
+// ===== HABITS =====
+let habits=JSON.parse(localStorage.getItem('fl_habits')||'[]');
+function saveHabits(){localStorage.setItem('fl_habits',JSON.stringify(habits))}
+
+function addHabit(){
+  const inp=document.getElementById('habit-input');
+  const name=inp.value.trim();
+  if(!name)return;
+  habits.push({id:Date.now(),name,done:false,streak:0});
+  inp.value='';
+  renderHabits();saveHabits();
+}
+
+function toggleHabit(id){
+  const h=habits.find(x=>x.id===id);
+  if(!h)return;
+  h.done=!h.done;
+  h.streak=h.done?(h.streak||0)+1:Math.max(0,(h.streak||1)-1);
+  renderHabits();saveHabits();
+}
+
+function deleteHabit(id){
+  habits=habits.filter(x=>x.id!==id);
+  renderHabits();saveHabits();
+}
+
+function renderHabits(){
+  const t=T[curLang];
+  const list=document.getElementById('habit-list');
+  const empty=document.getElementById('habit-empty');
+  list.innerHTML='';
+  empty.textContent=t.habEmpty;
+  if(!habits.length){empty.style.display='block';updateProgress();return;}
+  empty.style.display='none';
+  habits.forEach(h=>{
+    const div=document.createElement('div');
+    div.className='habit-item'+(h.done?' done':'');
+    div.innerHTML=`
+      <div class="habit-check" onclick="toggleHabit(${h.id})">${h.done?'✓':''}</div>
+      <span class="habit-name">${h.name}</span>
+      <span class="streak">${h.streak?t.streakLabel(h.streak):''}</span>
+      <button class="habit-del" onclick="deleteHabit(${h.id})">✕</button>`;
+    list.appendChild(div);
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const t=T[curLang];
+  const done=habits.filter(h=>h.done).length;
+  const total=habits.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=t.progLabel(done,total);
+  const wg=document.getElementById('week-grid');
+  wg.innerHTML='';
+  const today=new Date().getDay();
+  t.days.forEach((day,i)=>{
+    const d=document.createElement('div');
+    d.className='week-day';
+    const isToday=i===today;
+    d.innerHTML=`<span>${day}</span><div class="week-dot${isToday&&done>0?' done':''}" style="${isToday?'border-color:var(--green)':''}"> ${isToday&&done>0?done:''}</div>`;
+    wg.appendChild(d);
+  });
+}
+
+// ===== EATING PLAN =====
+let selEatGoal='🔥 Lose Weight', selDiet='🥗 Balanced';
+
+function selectOpt(btn,type){
+  const parent=type==='eatgoal'?'eatgoal-opts':'diet-opts';
+  document.querySelectorAll('#'+parent+' .opt-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(type==='eatgoal')selEatGoal=btn.textContent.trim();
+  else selDiet=btn.textContent.trim();
+}
+
+// meal plans data: [goal][diet] → {macros, meals}
+const mealPlans={
+  lose:{
+    balanced:{macros:'~1500 kcal · 120g protein · 150g carbs · 45g fat',meals:[
+      {type:'break',name:'Oatmeal Bowl',items:[['Rolled oats (80g)','280 kcal'],['Banana (1 medium)','90 kcal'],['Low-fat milk (150ml)','55 kcal'],['Honey (1 tsp)','20 kcal']]},
+      {type:'snack',name:'Morning Snack',items:[['Greek yogurt (150g)','90 kcal'],['Mixed berries (80g)','40 kcal']]},
+      {type:'lunch',name:'Chicken & Quinoa Salad',items:[['Grilled chicken breast (150g)','165 kcal'],['Quinoa (60g dry)','220 kcal'],['Mixed greens','15 kcal'],['Olive oil dressing (1 tbsp)','60 kcal']]},
+      {type:'snack',name:'Afternoon Snack',items:[['Apple (1 medium)','80 kcal'],['Almonds (15g)','85 kcal']]},
+      {type:'dinner',name:'Baked Salmon & Veggies',items:[['Salmon fillet (150g)','220 kcal'],['Steamed broccoli (200g)','70 kcal'],['Sweet potato (150g)','130 kcal']]},
+    ]},
+    highprot:{macros:'~1550 kcal · 160g protein · 100g carbs · 50g fat',meals:[
+      {type:'break',name:'Egg White Omelette',items:[['Egg whites (5)','85 kcal'],['Whole egg (1)','70 kcal'],['Spinach & peppers','25 kcal'],['Whole wheat toast (1 slice)','80 kcal']]},
+      {type:'snack',name:'Protein Shake',items:[['Whey protein (30g)','120 kcal'],['Almond milk (200ml)','30 kcal']]},
+      {type:'lunch',name:'Turkey & Veggie Bowl',items:[['Ground turkey (200g)','220 kcal'],['Brown rice (60g dry)','210 kcal'],['Zucchini & tomatoes','40 kcal']]},
+      {type:'snack',name:'Cottage Cheese',items:[['Low-fat cottage cheese (200g)','140 kcal'],['Cucumber slices','15 kcal']]},
+      {type:'dinner',name:'Grilled Chicken & Asparagus',items:[['Chicken breast (200g)','220 kcal'],['Asparagus (200g)','40 kcal'],['Lemon & herbs','5 kcal']]},
+    ]},
+    veg:{macros:'~1480 kcal · 80g protein · 180g carbs · 45g fat',meals:[
+      {type:'break',name:'Smoothie Bowl',items:[['Frozen berries (150g)','70 kcal'],['Banana (1)','90 kcal'],['Oat milk (100ml)','45 kcal'],['Granola (30g)','120 kcal']]},
+      {type:'snack',name:'Hummus & Veggies',items:[['Hummus (80g)','190 kcal'],['Carrot & celery sticks','30 kcal']]},
+      {type:'lunch',name:'Lentil Soup & Bread',items:[['Red lentils (100g dry)','340 kcal'],['Whole wheat bread (1 slice)','80 kcal'],['Vegetables & spices','30 kcal']]},
+      {type:'snack',name:'Mixed Nuts & Fruit',items:[['Walnuts (20g)','130 kcal'],['Orange (1 medium)','60 kcal']]},
+      {type:'dinner',name:'Tofu Stir-Fry',items:[['Firm tofu (200g)','160 kcal'],['Mixed vegetables (200g)','60 kcal'],['Soy sauce & sesame oil','40 kcal'],['Brown rice (60g dry)','210 kcal']]},
+    ]},
+    lowcarb:{macros:'~1450 kcal · 130g protein · 60g carbs · 80g fat',meals:[
+      {type:'break',name:'Avocado Egg Cups',items:[['Eggs (2 whole)','140 kcal'],['Avocado (½)','120 kcal'],['Cherry tomatoes','20 kcal'],['Feta cheese (20g)','55 kcal']]},
+      {type:'snack',name:'Cheese & Nuts',items:[['Cheddar (30g)','120 kcal'],['Pecans (15g)','105 kcal']]},
+      {type:'lunch',name:'Tuna Lettuce Wraps',items:[['Canned tuna (150g)','165 kcal'],['Lettuce leaves','10 kcal'],['Mayo (1 tbsp)','90 kcal'],['Celery & onion','15 kcal']]},
+      {type:'snack',name:'Hard Boiled Eggs',items:[['Eggs (2)','140 kcal'],['Salt & pepper','0 kcal']]},
+      {type:'dinner',name:'Beef & Cauliflower',items:[['Lean beef (180g)','270 kcal'],['Cauliflower rice (200g)','50 kcal'],['Olive oil (1 tbsp)','120 kcal'],['Garlic & herbs','10 kcal']]},
+    ]},
+  },
+  muscle:{
+    balanced:{macros:'~2800 kcal · 180g protein · 320g carbs · 80g fat',meals:[
+      {type:'break',name:'Big Breakfast Plate',items:[['Scrambled eggs (3)','210 kcal'],['Whole wheat toast (2 slices)','160 kcal'],['Oatmeal (100g dry)','350 kcal'],['Orange juice (200ml)','90 kcal']]},
+      {type:'snack',name:'Mass Gainer Shake',items:[['Banana (2)','180 kcal'],['Peanut butter (2 tbsp)','190 kcal'],['Whole milk (300ml)','195 kcal'],['Oats (40g)','140 kcal']]},
+      {type:'lunch',name:'Rice, Chicken & Beans',items:[['Chicken breast (200g)','220 kcal'],['White rice (100g dry)','360 kcal'],['Black beans (100g)','130 kcal'],['Salsa & avocado','80 kcal']]},
+      {type:'snack',name:'Greek Yogurt Parfait',items:[['Greek yogurt (200g)','130 kcal'],['Granola (40g)','160 kcal'],['Honey (1 tbsp)','60 kcal']]},
+      {type:'dinner',name:'Steak & Mashed Potatoes',items:[['Sirloin steak (200g)','340 kcal'],['Mashed potatoes (250g)','250 kcal'],['Green beans (150g)','45 kcal'],['Butter (10g)','70 kcal']]},
+    ]},
+    highprot:{macros:'~2900 kcal · 220g protein · 280g carbs · 85g fat',meals:[
+      {type:'break',name:'Protein Pancakes',items:[['Oats (80g)','280 kcal'],['Eggs (3)','210 kcal'],['Protein powder (30g)','120 kcal'],['Berries & maple syrup','80 kcal']]},
+      {type:'snack',name:'Chicken Rice Cake',items:[['Rice cakes (3)','105 kcal'],['Canned chicken (120g)','130 kcal'],['Mustard','10 kcal']]},
+      {type:'lunch',name:'Double Protein Bowl',items:[['Ground beef (200g)','400 kcal'],['Brown rice (100g dry)','360 kcal'],['Broccoli (200g)','70 kcal'],['Olive oil (1 tbsp)','120 kcal']]},
+      {type:'snack',name:'Cottage Cheese & Fruit',items:[['Cottage cheese (250g)','180 kcal'],['Pineapple (100g)','50 kcal']]},
+      {type:'dinner',name:'Salmon & Sweet Potato',items:[['Salmon (200g)','290 kcal'],['Sweet potato (200g)','180 kcal'],['Asparagus (150g)','30 kcal'],['Lemon butter (10g)','70 kcal']]},
+    ]},
+    veg:{macros:'~2700 kcal · 140g protein · 340g carbs · 75g fat',meals:[
+      {type:'break',name:'Tofu Scramble & Toast',items:[['Firm tofu (200g)','160 kcal'],['Whole wheat toast (2)','160 kcal'],['Spinach & nutritional yeast','40 kcal'],['Orange (1)','60 kcal']]},
+      {type:'snack',name:'Peanut Butter Banana',items:[['Banana (2)','180 kcal'],['Peanut butter (3 tbsp)','285 kcal']]},
+      {type:'lunch',name:'Chickpea & Rice Bowl',items:[['Chickpeas (150g cooked)','245 kcal'],['White rice (100g dry)','360 kcal'],['Tahini dressing (2 tbsp)','180 kcal'],['Mixed veggies','50 kcal']]},
+      {type:'snack',name:'Protein Smoothie',items:[['Plant protein (30g)','120 kcal'],['Almond milk (300ml)','45 kcal'],['Banana (1)','90 kcal'],['Oats (30g)','105 kcal']]},
+      {type:'dinner',name:'Tempeh Curry & Rice',items:[['Tempeh (200g)','380 kcal'],['Coconut milk curry (150ml)','200 kcal'],['Basmati rice (100g dry)','360 kcal']]},
+    ]},
+    lowcarb:{macros:'~2600 kcal · 200g protein · 100g carbs · 140g fat',meals:[
+      {type:'break',name:'Steak & Eggs',items:[['Lean steak (150g)','250 kcal'],['Eggs (3)','210 kcal'],['Avocado (1)','240 kcal'],['Spinach sauté','20 kcal']]},
+      {type:'snack',name:'Nuts & Cheese Board',items:[['Mixed nuts (40g)','260 kcal'],['Cheese (50g)','200 kcal']]},
+      {type:'lunch',name:'Ground Beef Lettuce Bowls',items:[['Ground beef 90% lean (200g)','330 kcal'],['Lettuce & tomato','20 kcal'],['Sour cream (2 tbsp)','60 kcal'],['Cheddar (30g)','120 kcal']]},
+      {type:'snack',name:'Tuna & Avocado',items:[['Canned tuna (150g)','165 kcal'],['Avocado (½)','120 kcal']]},
+      {type:'dinner',name:'Pork & Roasted Veggies',items:[['Pork tenderloin (200g)','280 kcal'],['Roasted cauliflower (200g)','60 kcal'],['Olive oil (2 tbsp)','240 kcal'],['Garlic & rosemary','10 kcal']]},
+    ]},
+  },
+  health:{
+    balanced:{macros:'~2000 kcal · 120g protein · 230g carbs · 65g fat',meals:[
+      {type:'break',name:'Whole Grain Breakfast',items:[['Whole grain cereal (60g)','220 kcal'],['Low-fat milk (200ml)','70 kcal'],['Banana (1)','90 kcal'],['Green tea','0 kcal']]},
+      {type:'snack',name:'Fruit & Nut Mix',items:[['Apple (1)','80 kcal'],['Walnuts (20g)','130 kcal']]},
+      {type:'lunch',name:'Mediterranean Plate',items:[['Grilled fish (150g)','180 kcal'],['Bulgur wheat (80g dry)','280 kcal'],['Greek salad (200g)','120 kcal'],['Olive oil (1 tbsp)','120 kcal']]},
+      {type:'snack',name:'Yogurt & Honey',items:[['Low-fat yogurt (200g)','110 kcal'],['Honey (1 tsp)','20 kcal'],['Walnuts (10g)','65 kcal']]},
+      {type:'dinner',name:'Chicken Veggie Soup',items:[['Chicken breast (130g)','145 kcal'],['Mixed vegetables (300g)','90 kcal'],['Whole wheat bread (1 slice)','80 kcal'],['Olive oil (1 tbsp)','120 kcal']]},
+    ]},
+    highprot:{macros:'~2000 kcal · 160g protein · 170g carbs · 60g fat',meals:[
+      {type:'break',name:'Protein Oats',items:[['Oats (80g)','280 kcal'],['Protein powder (25g)','100 kcal'],['Egg (1 whole)','70 kcal'],['Blueberries (100g)','55 kcal']]},
+      {type:'snack',name:'Hard Boiled Eggs',items:[['Eggs (2)','140 kcal'],['Whole grain crackers (20g)','75 kcal']]},
+      {type:'lunch',name:'Tuna Pasta Bowl',items:[['Canned tuna (150g)','165 kcal'],['Whole wheat pasta (80g dry)','280 kcal'],['Cherry tomatoes & basil','30 kcal'],['Olive oil (1 tbsp)','120 kcal']]},
+      {type:'snack',name:'Greek Yogurt',items:[['Greek yogurt (200g)','130 kcal'],['Kiwi (2)','80 kcal']]},
+      {type:'dinner',name:'Baked Turkey & Veg',items:[['Turkey breast (180g)','220 kcal'],['Roasted sweet potato (150g)','130 kcal'],['Green beans (200g)','60 kcal']]},
+    ]},
+    veg:{macros:'~1950 kcal · 90g protein · 260g carbs · 60g fat',meals:[
+      {type:'break',name:'Chia Pudding',items:[['Chia seeds (40g)','195 kcal'],['Oat milk (250ml)','115 kcal'],['Mixed berries (100g)','50 kcal'],['Maple syrup (1 tsp)','20 kcal']]},
+      {type:'snack',name:'Edamame',items:[['Edamame (150g)','190 kcal']]},
+      {type:'lunch',name:'Buddha Bowl',items:[['Falafel (4 pieces)','210 kcal'],['Quinoa (60g dry)','220 kcal'],['Roasted veg (200g)','100 kcal'],['Tahini (1 tbsp)','90 kcal']]},
+      {type:'snack',name:'Apple & Almond Butter',items:[['Apple (1)','80 kcal'],['Almond butter (1 tbsp)','95 kcal']]},
+      {type:'dinner',name:'Veggie Dal & Rice',items:[['Red lentil dal (300g)','290 kcal'],['Basmati rice (70g dry)','250 kcal'],['Whole wheat naan (½)','85 kcal']]},
+    ]},
+    lowcarb:{macros:'~1900 kcal · 140g protein · 80g carbs · 110g fat',meals:[
+      {type:'break',name:'Keto Egg Muffins',items:[['Eggs (3)','210 kcal'],['Bacon (2 strips)','90 kcal'],['Cheese (20g)','80 kcal'],['Bell peppers','25 kcal']]},
+      {type:'snack',name:'Avocado & Seeds',items:[['Avocado (½)','120 kcal'],['Pumpkin seeds (20g)','110 kcal']]},
+      {type:'lunch',name:'Caesar Salad + Chicken',items:[['Chicken breast (180g)','200 kcal'],['Romaine lettuce (200g)','30 kcal'],['Parmesan (20g)','80 kcal'],['Caesar dressing (2 tbsp)','150 kcal']]},
+      {type:'snack',name:'Smoked Salmon Bites',items:[['Smoked salmon (80g)','130 kcal'],['Cream cheese (20g)','70 kcal'],['Cucumber (100g)','15 kcal']]},
+      {type:'dinner',name:'Lamb & Greens',items:[['Lamb chop (180g)','340 kcal'],['Sautéed kale (200g)','70 kcal'],['Olive oil (1 tbsp)','120 kcal'],['Lemon & garlic','10 kcal']]},
+    ]},
+  }
+};
+
+function generateMeals(){
+  const t=T[curLang];
+  const goalMap={
+    [T.en.egLose]:'lose',[T.ru.egLose]:'lose',[T.es.egLose]:'lose',[T.hy.egLose]:'lose',
+    [T.en.egMuscle]:'muscle',[T.ru.egMuscle]:'muscle',[T.es.egMuscle]:'muscle',[T.hy.egMuscle]:'muscle',
+    [T.en.egHealth]:'health',[T.ru.egHealth]:'health',[T.es.egHealth]:'health',[T.hy.egHealth]:'health',
+  };
+  const dietMap={
+    [T.en.dBalanced]:'balanced',[T.ru.dBalanced]:'balanced',[T.es.dBalanced]:'balanced',[T.hy.dBalanced]:'balanced',
+    [T.en.dHighProt]:'highprot',[T.ru.dHighProt]:'highprot',[T.es.dHighProt]:'highprot',[T.hy.dHighProt]:'highprot',
+    [T.en.dVeg]:'veg',[T.ru.dVeg]:'veg',[T.es.dVeg]:'veg',[T.hy.dVeg]:'veg',
+    [T.en.dLowCarb]:'lowcarb',[T.ru.dLowCarb]:'lowcarb',[T.es.dLowCarb]:'lowcarb',[T.hy.dLowCarb]:'lowcarb',
+  };
+  const gk=goalMap[selEatGoal]||'lose';
+  const dk=dietMap[selDiet]||'balanced';
+  const plan=mealPlans[gk][dk];
+  document.getElementById('meal-plan-title').textContent=selEatGoal+' · '+selDiet;
+  document.getElementById('meal-plan-desc').textContent=t.mealPlanDesc;
+  document.getElementById('macro-row').innerHTML=`<span style="font-size:.82rem;color:var(--sub);margin-right:4px">${t.macroLabel}</span><span class="macro-pill">${plan.macros}</span>`;
+  const grid=document.getElementById('meal-grid');
+  grid.innerHTML='';
+  const tagClass={break:'tag-break',lunch:'tag-lunch',dinner:'tag-dinner',snack:'tag-snack'};
+  const tagLabel={break:t.tagBreak,lunch:t.tagLunch,dinner:t.tagDinner,snack:t.tagSnack};
+  plan.meals.forEach(m=>{
+    const el=document.createElement('div');
+    el.className='meal-card';
+    const rows=m.items.map(([n,c])=>`<div class="food-row"><span>${n}</span><span>${c}</span></div>`).join('');
+    el.innerHTML=`
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <b>${m.name}</b>
+        <span class="meal-tag ${tagClass[m.type]}">${tagLabel[m.type]}</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="meal-body">${rows}</div>`;
+    grid.appendChild(el);
+  });
+  document.getElementById('meal-result').style.display='block';
+  setTimeout(()=>document.getElementById('meal-result').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function toggleMeal(header){
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+renderHabits();
+</script>
+</body>
+</html>
